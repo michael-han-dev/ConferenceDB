@@ -1,0 +1,264 @@
+drop database if exists conferenceDB;
+create database conferenceDB;
+use conferenceDB;
+
+create table HotelRoom(
+roomNumber int not null,
+beds int not null,
+primary key (roomNumber)
+);
+
+create table Attendee(
+fname varchar(50) not null,
+lname varchar(50) not null,
+attendeeType ENUM('student', 'professional', 'sponsor_rep') NOT NULL,
+attendeeID int not null,
+hotelRoom int,
+payment decimal(10,2),
+sponsorCompany VARCHAR(50) NULL,
+primary key (attendeeID),
+foreign key (hotelRoom) references HotelRoom(roomNumber) on delete set null
+);
+
+create table Committee(
+committeeName varchar(50) not null,
+chair varchar(50) not null,
+primary key (committeeName)
+);
+
+create table Members(
+memberID int not null,
+role varchar(50) not null,
+email varchar(50) not null,
+fname varchar(50) not null,
+lname varchar(50) not null,
+primary key (memberID)
+);
+
+create table SessionTalkRoom(
+roomID int not null,
+size int,
+location varchar(50) not null,
+primary key (roomID)
+);
+
+create table Speaker(
+fname varchar(50) not null,
+lname varchar(50) not null,
+speakerID int not null,
+primary key (speakerID)
+);
+
+create table Sessions(
+ID int not null,
+name varchar(50) not null,
+start_time datetime not null,
+end_time datetime not null,
+roomNumber int not null,
+speaker int not null,
+primary key (ID),
+foreign key(roomNumber) references SessionTalkRoom(roomID),
+foreign key(speaker) references Speaker(speakerID)
+);
+
+create table Advertise(
+adsID int not null,
+title varchar(50),
+payment decimal(10,2),
+province varchar(2),
+city varchar(50),
+primary key(adsID)
+);
+
+create table Sponsors(
+companyName varchar(50) not null,
+money decimal(10,2) not null,
+ads int,
+primary key (companyName),
+foreign key (ads) references Advertise(adsID) on delete cascade
+);
+
+create table Jobs(
+jobID int not null auto_increment,
+companyName varchar(50) not null,
+title varchar(100) not null,
+description text,
+primary key (jobID),
+foreign key (companyName) references Sponsors(companyName) on delete cascade
+);
+
+create table Emails(
+emailID int not null,
+content text,
+emailCount int,
+sponsorName varchar(50) not null,
+date datetime not null,
+primary key (emailID),
+foreign key (sponsorName) references Sponsors(companyName) on delete cascade
+);
+
+create table CommitteeMembers(
+memID int not null,
+committeeID varchar(50) not null,
+primary key (memID, committeeID),
+foreign key (memID) references Members(memberID) on delete cascade,
+foreign key (committeeID) references Committee(committeeName) on delete cascade
+);
+
+create table AttendeeSession(
+attendee int not null,
+session int not null,
+primary key(attendee, session),
+foreign key (attendee) references Attendee(attendeeID) on delete cascade,
+foreign key (session) references Sessions(ID) on delete cascade
+);
+
+-- Insert data into HotelRoom
+INSERT INTO HotelRoom VALUES 
+(101, 2),
+(102, 1),
+(103, 3),
+(104, 2),
+(105, 1),
+(106, 2),
+(107, 3),
+(108, 1);
+
+-- Insert data into Attendee
+INSERT INTO Attendee (fname, lname, attendeeType, attendeeID, hotelRoom, payment, sponsorCompany) VALUES
+('John', 'Doe', 'student', 1, 101, 250.00, NULL),
+('Jane', 'Smith', 'student', 2, 102, 300.50, NULL),
+('Alice', 'Brown', 'professional', 3, NULL, 200.00, NULL),
+('Robert', 'Wilson', 'student', 4, 103, 275.75, NULL),
+('Emily', 'Davis', 'student', 5, 104, 320.00, NULL),
+('Michael', 'Johnson', 'professional', 6, NULL, 400.25, NULL),
+('Laura', 'White', 'student', 7, 105, 290.00, NULL),
+('Kevin', 'Martinez', 'student', 8, 106, 310.50, NULL),
+-- Add some Sponsor Representatives
+('Sarah', 'Chen', 'sponsor_rep', 9, NULL, 0.00, 'Google'),
+('David', 'Lee', 'sponsor_rep', 10, NULL, 0.00, 'Microsoft'),
+('Maria', 'Garcia', 'sponsor_rep', 11, NULL, 0.00, 'Google');
+
+-- Insert data into Committee
+INSERT INTO Committee VALUES 
+('Logistics', 'Dr. John Adams'),
+('Sponsorship', 'Sarah Lee'),
+('Technology', 'David Kim'),
+('Hospitality', 'Emily Carter'),
+('Marketing', 'Jessica Brown'),
+('Operations', 'Ryan Scott'),
+('Registration', 'Lisa Gomez'),
+('Security', 'Mike Rogers');
+
+-- Insert data into Members
+INSERT INTO Members VALUES 
+(1, 'Chair', 'john.adams@example.com', 'John', 'Adams'),
+(2, 'Member', 'sarah.lee@example.com', 'Sarah', 'Lee'),
+(3, 'Member', 'david.kim@example.com', 'David', 'Kim'),
+(4, 'Chair', 'emily.carter@example.com', 'Emily', 'Carter'),
+(5, 'Member', 'jessica.brown@example.com', 'Jessica', 'Brown'),
+(6, 'Member', 'ryan.scott@example.com', 'Ryan', 'Scott'),
+(7, 'Member', 'lisa.gomez@example.com', 'Lisa', 'Gomez'),
+(8, 'Member', 'mike.rogers@example.com', 'Mike', 'Rogers');
+
+-- Insert data into Speaker
+INSERT INTO Speaker VALUES 
+('Dr. Alan', 'Turing', 1),
+('Grace', 'Hopper', 2),
+('Tim', 'Berners-Lee', 3),
+('Ada', 'Lovelace', 4),
+('Elon', 'Musk', 5),
+('Marie', 'Curie', 6),
+('Stephen', 'Hawking', 7),
+('Katherine', 'Johnson', 8);
+
+-- Insert data into SessionTalkRoom
+INSERT INTO SessionTalkRoom VALUES 
+(1, 50, 'Hall A'),
+(2, 30, 'Hall B'),
+(3, 40, 'Room 101'),
+(4, 35, 'Room 102'),
+(5, 45, 'Room 103'),
+(6, 25, 'Room 104'),
+(7, 60, 'Main Auditorium'),
+(8, 20, 'VIP Lounge');
+
+-- Insert data into Sessions
+INSERT INTO Sessions VALUES 
+(1, 'AI in Healthcare', '2025-06-10 09:00:00', '2025-06-10 10:30:00', 1, 1),
+(2, 'Cybersecurity Trends', '2025-06-10 11:00:00', '2025-06-10 12:30:00', 2, 2),
+(3, 'Future of Web', '2025-06-11 09:00:00', '2025-06-11 10:30:00', 3, 3),
+(4, 'Quantum Computing', '2025-06-11 11:00:00', '2025-06-11 12:30:00', 4, 4),
+(5, 'Space Exploration', '2025-06-12 09:00:00', '2025-06-12 10:30:00', 5, 5),
+(6, 'Advancements in AI', '2025-06-12 11:00:00', '2025-06-12 12:30:00', 6, 6),
+(7, 'Physics and the Universe', '2025-06-13 09:00:00', '2025-06-13 10:30:00', 7, 7),
+(8, 'Women in Tech', '2025-06-13 11:00:00', '2025-06-13 12:30:00', 8, 8);
+
+-- Insert data into Advertise
+INSERT INTO Advertise VALUES 
+(1, 'Google Ad Campaign', 20000.00, 'CA', 'Toronto'),
+(2, 'Microsoft Event Promo', 18000.00, 'NY', 'New York'),
+(3, 'Amazon Web Services Ad', 22000.00, 'TX', 'Houston'),
+(4, 'Apple Innovation Ad', 25000.00, 'CA', 'San Francisco'),
+(5, 'Tesla Autopilot Ad', 27000.00, 'NV', 'Las Vegas'),
+(6, 'IBM AI Solutions Ad', 15000.00, 'FL', 'Miami'),
+(7, 'Intel Processor Ad', 20000.00, 'WA', 'Seattle'),
+(8, 'SpaceX Mars Mission Ad', 30000.00, 'CA', 'Los Angeles');
+
+-- Insert data into Sponsors
+INSERT INTO Sponsors VALUES 
+('Google', 50000.00, 1),
+('Microsoft', 45000.00, 2),
+('Amazon', 40000.00, 3),
+('Apple', 60000.00, 4),
+('Tesla', 35000.00, 5),
+('IBM', 25000.00, 6),
+('Intel', 30000.00, 7),
+('SpaceX', 70000.00, 8);
+
+-- Insert data into Emails
+INSERT INTO Emails VALUES 
+(1, 'Google event sponsorship email', 100, 'Google', '2025-06-01 08:00:00'),
+(2, 'Microsoft announcement email', 80, 'Microsoft', '2025-06-02 09:00:00'),
+(3, 'Amazon tech summit email', 90, 'Amazon', '2025-06-03 10:00:00'),
+(4, 'Apple keynote reminder email', 120, 'Apple', '2025-06-04 11:00:00'),
+(5, 'Tesla innovation event email', 75, 'Tesla', '2025-06-05 12:00:00'),
+(6, 'IBM AI research email', 110, 'IBM', '2025-06-06 13:00:00'),
+(7, 'Intel new chip launch email', 95, 'Intel', '2025-06-07 14:00:00'),
+(8, 'SpaceX Mars colonization email', 130, 'SpaceX', '2025-06-08 15:00:00');
+
+-- Insert data into CommitteeMembers
+INSERT INTO CommitteeMembers VALUES 
+(1, 'Logistics'),
+(2, 'Sponsorship'),
+(3, 'Technology'),
+(4, 'Hospitality'),
+(5, 'Marketing'),
+(6, 'Operations'),
+(7, 'Registration'),
+(8, 'Security');
+
+-- Insert data into AttendeeSession
+INSERT INTO AttendeeSession VALUES 
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(7, 7),
+(8, 8);
+
+-- Add foreign key constraint for Attendee.sponsorCompany AFTER Sponsors table is created
+ALTER TABLE Attendee ADD FOREIGN KEY (sponsorCompany) REFERENCES Sponsors(companyName) ON DELETE SET NULL;
+
+-- Insert Sample Data into Jobs
+INSERT INTO Jobs (companyName, title, description) VALUES
+('Google', 'Software Engineer', 'Develop next-gen technologies.'),
+('Google', 'Product Manager', 'Lead product development lifecycle.'),
+('Microsoft', 'Cloud Solutions Architect', 'Design and implement cloud solutions on Azure.'),
+('Amazon', 'Data Scientist', 'Analyze large datasets to drive business decisions.'),
+('Apple', 'iOS Developer', 'Create amazing applications for the Apple ecosystem.'),
+('Tesla', 'Robotics Engineer', 'Work on automation and robotics systems.'),
+('SpaceX', 'Propulsion Engineer', 'Develop rocket engines for Mars missions.');
+
